@@ -11,35 +11,51 @@ impl neologObject {
         let _ = self.file.write_all(&message.as_bytes());
     }
     
-    pub fn debug(&mut self, mut message: String){
-        message = format!("DEBUG: {}", message);
+    pub fn debug(&mut self, message: &str){
+        let message = format!("DEBUG: {}", message);
         if self.logging_level <= 2 {
             self.log(message);
         }
     }
     
-    pub fn critical(&mut self, mut message: String){
-        message = format!("## CRITICAL ERROR ##\n{}\n###   ###", message);
+    pub fn critical(&mut self, message: &str){
+        let message = format!("## CRITICAL ERROR ##\n{}\n###   ###", message);
         if self.logging_level <= 2 {
             self.log(message);
         }
     }
     
-    pub fn error(&mut self, mut message: String) {
-        message = format!("## ERROR ##: {}", message);
+    pub fn error(&mut self, message: &str) {
+        let message = format!("## ERROR ##: {}", message);
         if self.logging_level <= 2 {
             self.log(message);
         }
     }
 
-    pub fn info(&mut self, message: String) {
+    pub fn info(&mut self, message: &str) {
         if self.logging_level <= 2 {
-            self.log(message);
+            self.log(message.to_string());
+        }
+    }
+
+    pub fn clear(&self){
+        let _ = self.file.set_len(0);
+    }
+
+    pub fn change(&self, new_file_path: &str){
+        self.file = match fs::metadata(Path::new(new_file_path)){
+            Ok(e) => {
+                match fs::OpenOptions::new().append(true).open(new_file_path){
+                    Ok(o) => o,
+                    Err(e) => break,
+                }
+            },
+            Err(e)
         }
     }
 }
 
-pub fn init(file: String, level: Option<&str>) -> Result<neologObject, io::Error> {
+pub fn init(file: &str, level: Option<&str>) -> Result<neologObject, io::Error> {
     let logfile = Path::new(&env::current_dir().unwrap()).join(file);
     match fs::metadata(logfile.clone()){
         Ok(_) => (),
