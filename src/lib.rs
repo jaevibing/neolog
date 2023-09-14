@@ -43,15 +43,7 @@ impl neologObject {
     }
 
     pub fn change(&self, new_file_path: &str){
-        self.file = match fs::metadata(Path::new(new_file_path)){
-            Ok(e) => {
-                match fs::OpenOptions::new().append(true).open(new_file_path){
-                    Ok(o) => o,
-                    Err(e) => break,
-                }
-            },
-            Err(e)
-        }
+        
     }
 }
 
