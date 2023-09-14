@@ -1,12 +1,45 @@
 use std::{fs::{self, File}, env, path::Path, io::{self, Write}};
 
 #[allow(non_camel_case_types)]
-pub struct neologFile {
+pub struct neologObject {
     file: File,
     logging_level: i32
 }
 
-pub fn init(file: String, level: Option<&str>) -> Result<neologFile, io::Error> {
+impl neologObject {
+    fn log(&mut self, message: String){
+        let _ = self.file.write_all(&message.as_bytes());
+    }
+    
+    pub fn debug(&mut self, mut message: String){
+        message = format!("DEBUG: {}", message);
+        if self.logging_level <= 2 {
+            self.log(message);
+        }
+    }
+    
+    pub fn critical(&mut self, mut message: String){
+        message = format!("## CRITICAL ERROR ##\n{}\n###   ###", message);
+        if self.logging_level <= 2 {
+            self.log(message);
+        }
+    }
+    
+    pub fn error(&mut self, mut message: String) {
+        message = format!("## ERROR ##: {}", message);
+        if self.logging_level <= 2 {
+            self.log(message);
+        }
+    }
+
+    pub fn info(&mut self, message: String) {
+        if self.logging_level <= 2 {
+            self.log(message);
+        }
+    }
+}
+
+pub fn init(file: String, level: Option<&str>) -> Result<neologObject, io::Error> {
     let logfile = Path::new(&env::current_dir().unwrap()).join(file);
     match fs::metadata(logfile.clone()){
         Ok(_) => (),
@@ -38,54 +71,5 @@ pub fn init(file: String, level: Option<&str>) -> Result<neologFile, io::Error> 
         _ => 2, // default to debug if any other value is presented
     };
 
-    return Ok(neologFile{file, logging_level})
-}
-
-pub fn log(message: String, mut fileref: neologFile) -> Result<neologFile, io::Error> {
-    match fileref.file.write_all(&message.as_bytes()) {
-        Ok(_) => return Ok(fileref),
-        Err(e) => return Err(e),
-    }
-}
-
-pub fn debug(mut message: String, logfile: neologFile) -> Result<neologFile, io::Error> {
-    let line_number = line!();
-    message = format!("DEBUG (line {}): {}", line_number, message);
-    if logfile.logging_level <= 2 {
-        match log(message, logfile){
-            Ok(o) => Ok(o),
-            Err(e) => Err(e)
-        }
-    }
-    else {
-        Ok(logfile)
-    }
-}
-
-pub fn critical(mut message: String, logfile: neologFile) -> Result<neologFile, io::Error> {
-    let line_number = line!();
-    message = format!("## CRITICAL ERROR at line {} ##\n{}\n###   ###", line_number, message);
-    if logfile.logging_level <= 2 {
-        match log(message, logfile){
-            Ok(o) => Ok(o),
-            Err(e) => Err(e)
-        }
-    }
-    else {
-        Ok(logfile)
-    }
-}
-
-pub fn error(mut message: String, logfile: neologFile) -> Result<neologFile, io::Error> {
-    let line_number = line!();
-    message = format!("## ERROR at line {} ##: {}", line_number, message);
-    if logfile.logging_level <= 2 {
-        match log(message, logfile){
-            Ok(o) => Ok(o),
-            Err(e) => Err(e)
-        }
-    }
-    else {
-        Ok(logfile)
-    }
+    return Ok(neologObject{file, logging_level})
 }
