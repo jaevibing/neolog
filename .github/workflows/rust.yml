@@ -19,4 +19,8 @@ jobs:
     - name: Build
       run: cargo build --verbose
     - name: Run tests
+<<<<<<< HEAD
       run: cargo test --verbose
+=======
+      run: cargo test --verbose
+>>>>>>> f78b2648bb3bb33dd79d84392b11d38c04672fee
